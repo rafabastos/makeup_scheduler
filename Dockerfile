@@ -3,43 +3,14 @@
 # Use an official PHP runtime as a parent image
 FROM php:8.2-fpm
 
-# Set working directory
-WORKDIR /var/www
-
-# Install dependencies
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    locales \
-    zip \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
-    unzip \
-    git \
-    curl \
-    libonig-dev \
-    libxml2-dev \
-    libzip-dev \
     libpq-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd pdo_pgsql
+    && docker-php-ext-install pdo pdo_pgsql
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+WORKDIR /var/www/html
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY . .
 
-# Copy existing application directory contents
-COPY . /var/www
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Copy existing application directory permissions
-COPY --chown=www-data:www-data . /var/www
-
-# Change current user to www
-USER www-data
-
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
-CMD ["php-fpm"]
+CMD php artisan serve --host=0.0.0.0 --port=8000
